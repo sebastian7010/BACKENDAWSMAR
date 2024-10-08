@@ -9,10 +9,19 @@ describe('Reserve Controller Testing', () => {
     const number = '123456789';
     const date = '2024-10-15';
 
+    // Conectar a la base de datos antes de todas las pruebas
+    beforeAll(async() => {
+        await mongoose.connect(process.env.MONGO_URI, {
+            connectTimeoutMS: 10000 // Aumenta el tiempo de espera para la conexión
+        });
+    });
+
+    // Limpiar las reservas antes de cada prueba
     beforeEach(async() => {
         await Reserve.deleteMany({});
-    }, 30000);
+    });
 
+    // Cerrar la conexión a la base de datos y limpiar después de todas las pruebas
     afterAll(async() => {
         await Reserve.deleteMany({});
         await mongoose.connection.close();
@@ -20,7 +29,7 @@ describe('Reserve Controller Testing', () => {
 
     it('Debería crear una reserva exitosamente', async() => {
         const response = await request(app)
-            .post('/reserves')
+            .post('/api/createReserve')
             .send({ name, email, number, date });
 
         expect(response.statusCode).toBe(201);
