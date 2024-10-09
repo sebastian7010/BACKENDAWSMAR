@@ -9,19 +9,19 @@ describe('Reserve Controller Testing', () => {
     const number = '123456789';
     const date = '2024-10-15';
 
-    // Conectar a la base de datos antes de todas las pruebas
+    jest.setTimeout(30000);
+
+
     beforeAll(async() => {
         await mongoose.connect(process.env.MONGO_URI, {
-            connectTimeoutMS: 10000 // Aumenta el tiempo de espera para la conexión
+            connectTimeoutMS: 30000
         });
     });
 
-    // Limpiar las reservas antes de cada prueba
     beforeEach(async() => {
         await Reserve.deleteMany({});
     });
 
-    // Cerrar la conexión a la base de datos y limpiar después de todas las pruebas
     afterAll(async() => {
         await Reserve.deleteMany({});
         await mongoose.connection.close();
@@ -36,4 +36,27 @@ describe('Reserve Controller Testing', () => {
         expect(response.body).toHaveProperty('msg', `The reserve of user ${name} is created succesfuly`);
         expect(response.body.ok).toBe(true);
     });
+    it('Debería evitar crear una reserva duplicada', async() => {
+        await new Reserve({ name, email, number, date }).save();
+
+        const response = await request(app)
+            .post('/api/createReserve')
+            .send({ name, email, number, date });
+
+        expect(response.statusCode).toBe(400);
+        expect(response.body).toHaveProperty('msg', `${name} This reserve is already exist in database`);
+    });
+    it('Debería devolver un error al crear una reserva si ocurre un problema', async() => {
+        jest.spyOn(Reserve.prototype, 'save').mockImplementationOnce(() => {
+            throw new Error('Database error');
+        });
+
+        const response = await request(app)
+            .post('/api/createReserve')
+            .send({ name, email, number, date });
+
+        expect(response.statusCode).toBe(500);
+        expect(response.body).toHaveProperty('msg', 'contact to Developer, internal error');
+    });
+
 });

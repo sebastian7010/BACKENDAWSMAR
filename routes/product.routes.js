@@ -4,8 +4,8 @@ const { createProduct, getAllProduct, getProductById, deleteProductById } = requ
 
 
 router.post('/createProduct', createProduct)
-router.get('/getAllProduct', getAllProduct)
-router.get('/getProductById/:id', getProductById)
+router.get('/getAllProduct', getAllProduct);
+router.get('/getProductById/:id', getProductById);
 router.delete('/deleteProduct/:id', deleteProductById)
 
 
